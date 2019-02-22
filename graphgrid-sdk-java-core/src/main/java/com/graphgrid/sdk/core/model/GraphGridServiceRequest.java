@@ -2,6 +2,7 @@ package com.graphgrid.sdk.core.model;
 
 
 import com.graphgrid.sdk.core.handler.RequestHandler;
+import com.graphgrid.sdk.core.handler.ResponseHandler;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -10,12 +11,12 @@ import java.util.Map;
 
 abstract public class GraphGridServiceRequest
 {
-
     private URL endpoint;
     private Object body;
     private Map<String,String> headers;
     private Map<String,List<String>> customQueryParameters;
     private RequestHandler requestHandler;
+    private ResponseHandler responseHandler;
 
     @SuppressWarnings( "unchecked" )
     public <T extends GraphGridServiceRequest> T withHeaders( Map<String,String> headers )
@@ -63,5 +64,25 @@ abstract public class GraphGridServiceRequest
     public void setCustomQueryParameters( Map<String,List<String>> customQueryParameters )
     {
         this.customQueryParameters = customQueryParameters;
+    }
+
+    public RequestHandler getRequestHandler()
+    {
+        return requestHandler;
+    }
+
+    public void setRequestHandler( RequestHandler requestHandler )
+    {
+        this.requestHandler = requestHandler;
+    }
+
+    public ResponseHandler getResponseHandler()
+    {
+        return responseHandler;
+    }
+
+    public void setResponseHandler( ResponseHandler responseHandler )
+    {
+        this.responseHandler = responseHandler;
     }
 }

@@ -1,5 +1,8 @@
 package com.graphgrid.sdk.core.handler;
 
-public class RequestHandler
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+public interface RequestHandler
 {
+    String parseRequestClassToJson( ObjectMapper mapper );
 }
