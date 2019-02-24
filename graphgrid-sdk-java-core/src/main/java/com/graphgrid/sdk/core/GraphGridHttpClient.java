@@ -66,7 +66,7 @@ public class GraphGridHttpClient
 
         HttpResponse response = client.execute( request );
 
-        return (T) parseResponse( ggRequest.getResponseHandler(), response, objectMapper, responseType );
+        return (T) processResponse( ggRequest.getResponseHandler(), response, objectMapper, responseType );
     }
 
     // todo delegate to request handler
@@ -112,43 +112,27 @@ public class GraphGridHttpClient
 
         HttpResponse response = client.execute( request );
 
-        return (T) parseResponse( ggRequest.getResponseHandler(), response, objectMapper, responseType );
+        return (T) processResponse( ggRequest.getResponseHandler(), response, objectMapper, responseType );
     }
 
-
-    public <T extends GraphGridServiceResponse> T parseResponse( HttpResponse httpResponse, Class<T> responseType ) throws IOException
-    {
-        return (T) new ObjectMapper().readValue( new DefaultResponseHandler().handle( httpResponse ), responseType );
-    }
-
-    public <T extends GraphGridServiceResponse> T parseResponse( HttpResponse httpResponse, ObjectMapper mapper, Class<T> responseType ) throws IOException
-    {
-        return (T) mapper.readValue( new DefaultResponseHandler().handle( httpResponse ), responseType );
-    }
-
-    public <T extends GraphGridServiceResponse> T parseResponse( ResponseHandler handler, HttpResponse httpResponse, Class<T> responseType ) throws IOException
-    {
-        return (T) new ObjectMapper().readValue( handler.handle( httpResponse ), responseType );
-    }
-
-    public <T extends GraphGridServiceResponse> T parseResponse( ResponseHandler handler, HttpResponse httpResponse, ObjectMapper mapper,
+    public <T extends GraphGridServiceResponse> T processResponse( ResponseHandler handler, HttpResponse httpResponse, ObjectMapper mapper,
             Class<T> responseType ) throws IOException
     {
         if ( handler == null && mapper == null )
         {
-            return parseResponse( httpResponse, responseType );
+            return (T) new DefaultResponseHandler().handle( httpResponse, objectMapper, responseType );
         }
         else if ( handler != null && mapper == null )
         {
-            return parseResponse( handler, httpResponse, responseType );
+            return (T) handler.handle( httpResponse, objectMapper, responseType );
         }
-        else if ( handler == null )
+        else if ( handler == null && mapper != null )
         {
-            return parseResponse( httpResponse, mapper, responseType );
+            return (T) new DefaultResponseHandler().handle( httpResponse, mapper, responseType );
         }
         else
         {
-            return (T) mapper.readValue( handler.handle( httpResponse ), responseType );
+            return (T) handler.handle( httpResponse, mapper, responseType );
         }
     }
 

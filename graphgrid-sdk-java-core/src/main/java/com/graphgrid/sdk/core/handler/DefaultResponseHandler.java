@@ -1,14 +1,16 @@
 package com.graphgrid.sdk.core.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.graphgrid.sdk.core.model.GraphGridServiceResponse;
 import org.apache.http.HttpResponse;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
-public class DefaultResponseHandler implements ResponseHandler
+public class DefaultResponseHandler<T extends GraphGridServiceResponse> implements ResponseHandler
 {
-    public String handle( HttpResponse httpResponse ) throws IOException
+    private String convertToString( HttpResponse httpResponse ) throws IOException
     {
         final BufferedReader rd = new BufferedReader( new InputStreamReader( httpResponse.getEntity().getContent() ) );
         final StringBuilder result = new StringBuilder();
@@ -18,5 +20,18 @@ public class DefaultResponseHandler implements ResponseHandler
             result.append( line );
         }
         return result.toString();
+    }
+
+    @Override
+    public GraphGridServiceResponse handle( HttpResponse httpResponse, Class responseType ) throws IOException
+    {
+        return handle( httpResponse, new ObjectMapper(), responseType );
+    }
+
+    @Override
+    public GraphGridServiceResponse handle( HttpResponse httpResponse, ObjectMapper mapper, Class responseType ) throws IOException
+    {
+
+        return (T) mapper.readValue( convertToString( httpResponse ), responseType );
     }
 }
