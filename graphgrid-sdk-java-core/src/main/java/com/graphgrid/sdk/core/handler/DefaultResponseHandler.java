@@ -31,7 +31,6 @@ public class DefaultResponseHandler<T extends GraphGridServiceResponse> implemen
     @Override
     public GraphGridServiceResponse handle( HttpResponse httpResponse, ObjectMapper mapper, Class responseType ) throws IOException
     {
-
         return (T) mapper.readValue( convertToString( httpResponse ), responseType );
     }
 }

@@ -12,11 +12,16 @@ import java.util.Map;
 abstract public class GraphGridServiceRequest
 {
     private URL endpoint;
+    private String serviceUrl;
     private Object body;
     private Map<String,String> headers;
     private Map<String,List<String>> customQueryParameters;
     private RequestHandler requestHandler;
     private ResponseHandler responseHandler;
+
+    public GraphGridServiceRequest()
+    {
+    }
 
     @SuppressWarnings( "unchecked" )
     public <T extends GraphGridServiceRequest> T withHeaders( Map<String,String> headers )
@@ -25,6 +30,7 @@ abstract public class GraphGridServiceRequest
         T t = (T) this;
         return t;
     }
+
 
     public URL getEndpoint() throws MalformedURLException
     {
@@ -84,5 +90,15 @@ abstract public class GraphGridServiceRequest
     public void setResponseHandler( ResponseHandler responseHandler )
     {
         this.responseHandler = responseHandler;
+    }
+
+    public String getServiceUrl()
+    {
+        return serviceUrl;
+    }
+
+    public void setServiceUrl( String serviceUrl )
+    {
+        this.serviceUrl = serviceUrl;
     }
 }
