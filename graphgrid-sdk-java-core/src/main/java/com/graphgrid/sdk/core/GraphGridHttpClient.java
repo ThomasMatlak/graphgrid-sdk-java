@@ -73,7 +73,6 @@ public class GraphGridHttpClient
     // todo enable configuring and reusing object mapper
     private String parseRequestToJsonString( Object obj ) throws IOException
     {
-        System.out.println( objectMapper.writer().writeValueAsString( obj ) );
         return objectMapper.writer().writeValueAsString( obj );
     }
 
@@ -86,6 +85,7 @@ public class GraphGridHttpClient
                 request.addHeader( e.getKey(), e.getValue() );
             }
         }
+        // todo move to different location
         // add request header
         request.addHeader( "User-Agent", USER_AGENT );
         request.addHeader( "Content-type", "application/json" );

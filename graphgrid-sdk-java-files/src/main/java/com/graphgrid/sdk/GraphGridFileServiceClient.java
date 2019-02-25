@@ -11,12 +11,20 @@ import com.graphgrid.sdk.model.FileServiceStatusRequest;
 import com.graphgrid.sdk.model.FileServiceStatusResponse;
 import com.graphgrid.sdk.model.PersistFileNodeOnlyRequest;
 import com.graphgrid.sdk.model.PersistFileNodeOnlyResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class GraphGridFileServiceClient extends GraphGridServiceBase implements GraphGridFileService
 {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( GraphGridFileServiceClient.class );
 
     public GraphGridFileServiceClient( GraphGridHttpClient client, String baseUrl )
     {
@@ -37,13 +45,15 @@ public class GraphGridFileServiceClient extends GraphGridServiceBase implements 
     {
         try
         {
-            request.setEndpoint( ServiceUrlBuilder.buildEndpoint( request, this.getBaseUrl(), "upload/createOnly", request.getCustomQueryParameters() ) );
+            final Map<String,List<String>> queryParams = Optional.ofNullable( request.getCustomQueryParameters() ).orElse( new HashMap<>() );
+            queryParams.put( "orgGrn", Collections.singletonList( request.getOrgGrn() ) );
+            request.setEndpoint( ServiceUrlBuilder.buildEndpoint( request, this.getBaseUrl(), "upload/createOnly", queryParams ) );
+            request.setBody( request.getUploadFileMetadata() );
             return this.getClient().invoke( request, PersistFileNodeOnlyResponse.class, HttpMethod.POST );
         }
-        // todo add logger
         catch ( IOException e )
         {
-            e.printStackTrace();
+            LOGGER.error( e.getMessage() );
         }
         return new PersistFileNodeOnlyResponse().withException( new GraphGridClientException() );
     }
