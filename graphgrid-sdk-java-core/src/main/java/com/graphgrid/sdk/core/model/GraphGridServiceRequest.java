@@ -1,6 +1,7 @@
 package com.graphgrid.sdk.core.model;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.graphgrid.sdk.core.handler.RequestHandler;
 import com.graphgrid.sdk.core.handler.ResponseHandler;
 
@@ -9,14 +10,22 @@ import java.net.URL;
 import java.util.List;
 import java.util.Map;
 
+
 abstract public class GraphGridServiceRequest
 {
+    @JsonIgnore
     private URL endpoint;
+    @JsonIgnore
     private String serviceUrl;
+    @JsonIgnore
     private Object body;
+    @JsonIgnore
     private Map<String,String> headers;
+    @JsonIgnore
     private Map<String,List<String>> customQueryParameters;
+    @JsonIgnore
     private RequestHandler requestHandler;
+    @JsonIgnore
     private ResponseHandler responseHandler;
 
     public GraphGridServiceRequest()

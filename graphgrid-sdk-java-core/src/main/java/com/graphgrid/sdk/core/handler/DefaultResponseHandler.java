@@ -1,6 +1,7 @@
 package com.graphgrid.sdk.core.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.graphgrid.sdk.core.exception.GraphGridClientException;
 import com.graphgrid.sdk.core.model.GraphGridServiceResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
@@ -36,6 +37,33 @@ public class DefaultResponseHandler<T extends GraphGridServiceResponse> implemen
     @Override
     public GraphGridServiceResponse handle( HttpResponse httpResponse, ObjectMapper mapper, Class responseType ) throws IOException
     {
+        if ( httpResponse.getStatusLine().getStatusCode() != 200 )
+        {
+            handleErrorMessage( httpResponse );
+        }
         return (T) mapper.readValue( convertToString( httpResponse ), responseType );
+    }
+
+    // todo error handler need to be configurable
+    private void handleErrorMessage( HttpResponse httpResponse )
+    {
+        String errorMessage = "";
+        try
+        {
+            errorMessage = convertToString( httpResponse );
+        }
+        catch ( Exception ex )
+        {
+            throw new GraphGridClientException(
+                    "{ 'status' :  " + httpResponse.getStatusLine().getStatusCode() + ", 'message' : 'no parseable error message'}" )
+                    .withStatusCode( httpResponse.getStatusLine().getStatusCode() );
+        }
+        if ( StringUtils.isEmpty( errorMessage ) || errorMessage.equals( "{}" ) )
+        {
+            throw new GraphGridClientException(
+                    "{ 'status' :  " + httpResponse.getStatusLine().getStatusCode() + ", 'message' : 'no parseable error message'}" )
+                    .withStatusCode( httpResponse.getStatusLine().getStatusCode() );
+        }
+        throw new GraphGridClientException( errorMessage ).withStatusCode( httpResponse.getStatusLine().getStatusCode() );
     }
 }

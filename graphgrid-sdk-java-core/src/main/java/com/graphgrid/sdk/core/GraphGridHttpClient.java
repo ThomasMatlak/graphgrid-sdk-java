@@ -46,7 +46,7 @@ public class GraphGridHttpClient
         else if ( httpMethod == HttpMethod.POST )
         {
             request = new HttpPost( url );
-            ((HttpPost) request).setEntity( new StringEntity( parseRequestToJsonString( ggRequest ) ) );
+            ((HttpPost) request).setEntity( new StringEntity( parseRequestToJsonString( ggRequest.getBody() ) ) );
         }
         else if ( httpMethod == HttpMethod.PUT )
         {
@@ -73,7 +73,8 @@ public class GraphGridHttpClient
     // todo enable configuring and reusing object mapper
     private String parseRequestToJsonString( Object obj ) throws IOException
     {
-        return new ObjectMapper().writer().writeValueAsString( obj );
+        System.out.println( objectMapper.writer().writeValueAsString( obj ) );
+        return objectMapper.writer().writeValueAsString( obj );
     }
 
     private HttpUriRequest addHeaders( final Map<String,String> headers, HttpUriRequest request )
@@ -87,33 +88,11 @@ public class GraphGridHttpClient
         }
         // add request header
         request.addHeader( "User-Agent", USER_AGENT );
+        request.addHeader( "Content-type", "application/json" );
         return request;
 
     }
 
-    public <T extends GraphGridServiceResponse> T invoke( GraphGridServiceRequest ggRequest, Class<T> responseType ) throws IOException
-    {
-        String url = ggRequest.getEndpoint().toString();
-        HttpClient client = HttpClientBuilder.create().build();
-        final HttpGet request = new HttpGet( url );
-
-
-        final Map<String,String> headers = ggRequest.getHeaders();
-        if ( headers != null )
-        {
-            for ( Map.Entry<String,String> e : headers.entrySet() )
-            {
-                request.addHeader( e.getKey(), e.getValue() );
-            }
-        }
-        // add request header
-        request.addHeader( "User-Agent", USER_AGENT );
-
-
-        HttpResponse response = client.execute( request );
-
-        return (T) processResponse( ggRequest.getResponseHandler(), response, objectMapper, responseType );
-    }
 
     public <T extends GraphGridServiceResponse> T processResponse( ResponseHandler handler, HttpResponse httpResponse, ObjectMapper mapper,
             Class<T> responseType ) throws IOException
