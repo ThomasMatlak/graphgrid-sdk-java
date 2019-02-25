@@ -58,16 +58,31 @@ public class GraphGridFileServiceClient extends GraphGridServiceBase implements 
         return new PersistFileNodeOnlyResponse().withException( new GraphGridClientException() );
     }
 
-    public FileServiceStatusResponse status( FileServiceStatusRequest request ) throws IOException
+    public FileServiceStatusResponse status( FileServiceStatusRequest request )
     {
-        request.setEndpoint( ServiceUrlBuilder.buildEndpoint( request, this.getBaseUrl(), "status", request.getCustomQueryParameters() ) );
-        return this.getClient().invoke( request, FileServiceStatusResponse.class, HttpMethod.GET );
+        try
+        {
+            request.setEndpoint( ServiceUrlBuilder.buildEndpoint( request, this.getBaseUrl(), "status", request.getCustomQueryParameters() ) );
+            return this.getClient().invoke( request, FileServiceStatusResponse.class, HttpMethod.GET );
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( e.getMessage() );
+        }
+        return new FileServiceStatusResponse().withException( new GraphGridClientException() );
     }
 
-    public void deleteFile( DeleteFileRequest request ) throws IOException
+    public void deleteFile( DeleteFileRequest request )
     {
-        request.setEndpoint( ServiceUrlBuilder.buildEndpoint( request, this.getBaseUrl(), "delete", request.getCustomQueryParameters() ) );
-        this.getClient().invoke( request, DeleteFileResponse.class, HttpMethod.DELETE );
+        try
+        {
+            request.setEndpoint( ServiceUrlBuilder.buildEndpoint( request, this.getBaseUrl(), "delete", request.getCustomQueryParameters() ) );
+            this.getClient().invoke( request, DeleteFileResponse.class, HttpMethod.DELETE );
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( e.getMessage() );
+        }
     }
 
 }
