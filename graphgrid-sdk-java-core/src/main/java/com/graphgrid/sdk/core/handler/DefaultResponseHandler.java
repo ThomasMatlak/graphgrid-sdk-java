@@ -2,6 +2,7 @@ package com.graphgrid.sdk.core.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphgrid.sdk.core.model.GraphGridServiceResponse;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpResponse;
 
 import java.io.BufferedReader;
@@ -18,6 +19,10 @@ public class DefaultResponseHandler<T extends GraphGridServiceResponse> implemen
         while ( (line = rd.readLine()) != null )
         {
             result.append( line );
+        }
+        if ( StringUtils.isEmpty( result ) )
+        {
+            return "{}";
         }
         return result.toString();
     }
