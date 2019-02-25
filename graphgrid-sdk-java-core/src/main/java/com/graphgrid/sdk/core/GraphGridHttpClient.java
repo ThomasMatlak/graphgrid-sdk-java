@@ -90,7 +90,6 @@ public class GraphGridHttpClient
         request.addHeader( "User-Agent", USER_AGENT );
         request.addHeader( "Content-type", "application/json" );
         return request;
-
     }
 
 
