@@ -4,6 +4,7 @@ package com.graphgrid.sdk.core.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.graphgrid.sdk.core.handler.RequestHandler;
 import com.graphgrid.sdk.core.handler.ResponseHandler;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -109,5 +110,12 @@ abstract public class GraphGridServiceRequest
     public void setServiceUrl( String serviceUrl )
     {
         this.serviceUrl = serviceUrl;
+    }
+
+    @Override
+    public String toString()
+    {
+        return new ToStringBuilder( this ).append( "endpoint", endpoint ).append( "serviceUrl", serviceUrl ).append( "body", body ).append( "headers", headers )
+                .append( "customQueryParameters", customQueryParameters ).toString();
     }
 }

@@ -1,6 +1,7 @@
 package com.graphgrid.sdk.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.graphgrid.sdk.core.exception.GraphGridClientException;
 import com.graphgrid.sdk.core.handler.DefaultResponseHandler;
 import com.graphgrid.sdk.core.handler.ResponseHandler;
 import com.graphgrid.sdk.core.model.GraphGridServiceRequest;
@@ -16,6 +17,8 @@ import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -24,7 +27,10 @@ import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 public class GraphGridHttpClient
 {
-    // todo make object mapper resusable and configurable
+
+    private static final Logger LOGGER = LoggerFactory.getLogger( GraphGridHttpClient.class );
+
+    // todo make object mapper configurable
     // either through http client factory or within constructor
     private ObjectMapper objectMapper;
 
@@ -33,40 +39,51 @@ public class GraphGridHttpClient
         this.objectMapper = new ObjectMapper();
     }
 
-    public <T extends GraphGridServiceResponse> T invoke( GraphGridServiceRequest ggRequest, Class<T> responseType, HttpMethod httpMethod ) throws IOException
+    public <T extends GraphGridServiceResponse> T invoke( GraphGridServiceRequest ggRequest, Class<T> responseType, HttpMethod httpMethod )
     {
-        final String url = ggRequest.getEndpoint().toString();
-        final HttpClient client = HttpClientBuilder.create().build();
+        IOException ex = null;
+        try
+        {
+            final String url = ggRequest.getEndpoint().toString();
+            final HttpClient client = HttpClientBuilder.create().build();
 
-        HttpUriRequest request = null;
-        if ( httpMethod == HttpMethod.GET )
-        {
-            request = new HttpGet( url );
-        }
-        else if ( httpMethod == HttpMethod.POST )
-        {
-            request = new HttpPost( url );
-            ((HttpPost) request).setEntity( new StringEntity( parseRequestToJsonString( ggRequest.getBody() ) ) );
-        }
-        else if ( httpMethod == HttpMethod.PUT )
-        {
-            request = new HttpPut( url );
-            ((HttpPut) request).setEntity( new StringEntity( parseRequestToJsonString( ggRequest ) ) );
-        }
-        else if ( httpMethod == HttpMethod.DELETE )
-        {
-            request = new HttpDelete( url );
-        }
-        else if ( httpMethod == HttpMethod.PATCH )
-        {
-            request = new HttpPatch( url );
-        }
+            HttpUriRequest request = null;
+            if ( httpMethod == HttpMethod.GET )
+            {
+                request = new HttpGet( url );
+            }
+            else if ( httpMethod == HttpMethod.POST )
+            {
+                request = new HttpPost( url );
+                ((HttpPost) request).setEntity( new StringEntity( parseRequestToJsonString( ggRequest.getBody() ) ) );
+            }
+            else if ( httpMethod == HttpMethod.PUT )
+            {
+                request = new HttpPut( url );
+                ((HttpPut) request).setEntity( new StringEntity( parseRequestToJsonString( ggRequest ) ) );
+            }
+            else if ( httpMethod == HttpMethod.DELETE )
+            {
+                request = new HttpDelete( url );
+            }
+            else if ( httpMethod == HttpMethod.PATCH )
+            {
+                request = new HttpPatch( url );
+            }
 
-        request = addHeaders( ggRequest.getHeaders(), request );
 
-        HttpResponse response = client.execute( request );
+            request = addHeaders( ggRequest.getHeaders(), request );
 
-        return (T) processResponse( ggRequest.getResponseHandler(), response, objectMapper, responseType );
+            HttpResponse response = client.execute( request );
+
+            return (T) processResponse( ggRequest.getResponseHandler(), response, objectMapper, responseType );
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( "error processing request " + ggRequest.toString(), e.getMessage() );
+            ex = e;
+        }
+        throw new GraphGridClientException( "error processing request " + ggRequest.toString(), ex );
     }
 
     // todo delegate to request handler

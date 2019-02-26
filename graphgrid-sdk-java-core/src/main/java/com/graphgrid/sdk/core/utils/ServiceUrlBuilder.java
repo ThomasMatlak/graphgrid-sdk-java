@@ -1,8 +1,11 @@
 package com.graphgrid.sdk.core.utils;
 
 
+import com.graphgrid.sdk.core.exception.GraphGridClientException;
 import com.graphgrid.sdk.core.model.GraphGridServiceRequest;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URL;
@@ -12,10 +15,22 @@ import java.util.Map;
 public class ServiceUrlBuilder
 {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger( ServiceUrlBuilder.class );
+
     public static URL buildEndpoint( GraphGridServiceRequest request, String baseUrl, String serviceUrl, Map<String,List<String>> queryParameters )
-            throws IOException
     {
-        return buildEndpoint( request, baseUrl, serviceUrl, convertQueryParamMapToString( queryParameters ) );
+
+        IOException ex = null;
+        try
+        {
+            return buildEndpoint( request, baseUrl, serviceUrl, convertQueryParamMapToString( queryParameters ) );
+        }
+        catch ( IOException e )
+        {
+            LOGGER.error( "error build url for request " + request.toString(), e.getMessage() );
+            ex = e;
+        }
+        throw new GraphGridClientException( "error build url for request " + request.toString(), ex );
     }
 
     public static URL buildEndpoint( GraphGridServiceRequest request, String baseUrl, String serviceUrl, String queryParameters ) throws IOException
