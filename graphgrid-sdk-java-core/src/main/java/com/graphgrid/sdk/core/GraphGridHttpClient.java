@@ -2,41 +2,39 @@ package com.graphgrid.sdk.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphgrid.sdk.core.exception.GraphGridClientException;
+import com.graphgrid.sdk.core.handler.DefaultRequestHandler;
 import com.graphgrid.sdk.core.handler.DefaultResponseHandler;
+import com.graphgrid.sdk.core.handler.RequestHandler;
 import com.graphgrid.sdk.core.handler.ResponseHandler;
 import com.graphgrid.sdk.core.model.GraphGridServiceRequest;
 import com.graphgrid.sdk.core.model.GraphGridServiceResponse;
 import com.graphgrid.sdk.core.utils.HttpMethod;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPatch;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Map;
-
-import static org.apache.http.protocol.HTTP.USER_AGENT;
 
 public class GraphGridHttpClient
 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger( GraphGridHttpClient.class );
 
-    // todo make object mapper configurable
-    // either through http client factory or within constructor
     private ObjectMapper objectMapper;
+
+    private HttpClient apacheClient;
 
     public GraphGridHttpClient()
     {
-        this.objectMapper = new ObjectMapper();
+        this( new ObjectMapper(), HttpClientBuilder.create().build() );
+    }
+
+    public GraphGridHttpClient( ObjectMapper objectMapper, HttpClient client )
+    {
+        this.objectMapper = objectMapper;
+        this.apacheClient = client;
     }
 
     public <T extends GraphGridServiceResponse> T invoke( GraphGridServiceRequest ggRequest, Class<T> responseType, HttpMethod httpMethod )
@@ -44,38 +42,7 @@ public class GraphGridHttpClient
         IOException ex = null;
         try
         {
-            final String url = ggRequest.getEndpoint().toString();
-            final HttpClient client = HttpClientBuilder.create().build();
-
-            HttpUriRequest request = null;
-            if ( httpMethod == HttpMethod.GET )
-            {
-                request = new HttpGet( url );
-            }
-            else if ( httpMethod == HttpMethod.POST )
-            {
-                request = new HttpPost( url );
-                ((HttpPost) request).setEntity( new StringEntity( parseRequestToJsonString( ggRequest.getBody() ) ) );
-            }
-            else if ( httpMethod == HttpMethod.PUT )
-            {
-                request = new HttpPut( url );
-                ((HttpPut) request).setEntity( new StringEntity( parseRequestToJsonString( ggRequest ) ) );
-            }
-            else if ( httpMethod == HttpMethod.DELETE )
-            {
-                request = new HttpDelete( url );
-            }
-            else if ( httpMethod == HttpMethod.PATCH )
-            {
-                request = new HttpPatch( url );
-            }
-
-
-            request = addHeaders( ggRequest.getHeaders(), request );
-
-            HttpResponse response = client.execute( request );
-
+            HttpResponse response = this.executeRequest( ggRequest.getRequestHandler(), ggRequest, httpMethod );
             return (T) processResponse( ggRequest.getResponseHandler(), response, objectMapper, responseType );
         }
         catch ( IOException e )
@@ -84,29 +51,6 @@ public class GraphGridHttpClient
             ex = e;
         }
         throw new GraphGridClientException( "error processing request " + ggRequest.toString(), ex );
-    }
-
-    // todo delegate to request handler
-    // todo enable configuring and reusing object mapper
-    private String parseRequestToJsonString( Object obj ) throws IOException
-    {
-        return objectMapper.writer().writeValueAsString( obj );
-    }
-
-    private HttpUriRequest addHeaders( final Map<String,String> headers, HttpUriRequest request )
-    {
-        if ( headers != null )
-        {
-            for ( Map.Entry<String,String> e : headers.entrySet() )
-            {
-                request.addHeader( e.getKey(), e.getValue() );
-            }
-        }
-        // todo move to different location
-        // add request header
-        request.addHeader( "User-Agent", USER_AGENT );
-        request.addHeader( "Content-type", "application/json" );
-        return request;
     }
 
 
@@ -130,5 +74,18 @@ public class GraphGridHttpClient
             return (T) handler.handle( httpResponse, mapper, responseType );
         }
     }
+
+    private HttpResponse executeRequest( RequestHandler handler, GraphGridServiceRequest request, HttpMethod httpMethod ) throws IOException
+    {
+        if ( handler == null )
+        {
+            return new DefaultRequestHandler().executeRequest( request, httpMethod, this.apacheClient );
+        }
+        else
+        {
+            return request.getRequestHandler().executeRequest( request, httpMethod, this.apacheClient );
+        }
+    }
+
 
 }

@@ -72,4 +72,10 @@ public class GraphGridFileServiceClient extends GraphGridServiceBase implements 
         return this.getClient().invoke( request, FindFileResponse.class, HttpMethod.GET );
 
     }
+
+
+//    private GraphGridServiceRequest buildRequest( String serviceUrl, Map<String,List<String>> queryParams, Object body, Map<String,String> headers )
+//    {
+//
+//    }
 }

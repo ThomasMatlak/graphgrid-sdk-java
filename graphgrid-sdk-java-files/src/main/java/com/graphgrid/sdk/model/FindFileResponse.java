@@ -2,6 +2,7 @@ package com.graphgrid.sdk.model;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.graphgrid.sdk.core.model.GraphGridServiceResponse;
 
 @JsonAutoDetect
@@ -9,7 +10,17 @@ import com.graphgrid.sdk.core.model.GraphGridServiceResponse;
 public class FindFileResponse extends GraphGridServiceResponse
 {
 
-    FileNode fileNode;
+    @JsonUnwrapped
+    private FileNode fileNode;
+
+    public FindFileResponse()
+    {
+    }
+
+    public FindFileResponse( FileNode fileNode )
+    {
+        this.fileNode = fileNode;
+    }
 
     public FileNode getFileNode()
     {

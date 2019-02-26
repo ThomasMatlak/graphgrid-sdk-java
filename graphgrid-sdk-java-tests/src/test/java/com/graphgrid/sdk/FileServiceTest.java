@@ -1,10 +1,11 @@
 package com.graphgrid.sdk;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.graphgrid.sdk.core.exception.GraphGridClientException;
 import com.graphgrid.sdk.model.FileNode;
 import com.graphgrid.sdk.model.FileServiceStatusRequest;
 import com.graphgrid.sdk.model.FileServiceStatusResponse;
+import com.graphgrid.sdk.model.FindFileRequest;
+import com.graphgrid.sdk.model.FindFileResponse;
 import com.graphgrid.sdk.model.PersistFileNodeOnlyRequest;
 import com.graphgrid.sdk.model.PersistFileNodeOnlyResponse;
 import com.graphgrid.sdk.model.UploadFileMetadata;
@@ -20,18 +21,6 @@ import static junit.framework.TestCase.assertNotNull;
 
 public class FileServiceTest
 {
-    @Test
-    public void name() throws Exception
-    {
-        final ObjectMapper objectMapper = new ObjectMapper();
-
-        final FileNode fileNode = new FileNode();
-        fileNode.setBucket( "bucket" );
-
-        final String s = new ObjectMapper().writer().writeValueAsString( fileNode );
-        System.out.println( s );
-
-    }
 
     @Test
     public void testStatus() throws Exception
@@ -125,6 +114,7 @@ public class FileServiceTest
         assertEquals( exception.getHttpStatusCode(), 401 );
     }
 
+    @Ignore( "security needs to be implemented" )
     @Test
     public void notInternalServerError() throws IOException
     {
@@ -162,4 +152,21 @@ public class FileServiceTest
         assertEquals( exception.getHttpStatusCode(), 500 );
     }
 
+    @Test
+    public void getFileNode()
+    {
+        String fileGrn = "grn:gg:file:Mm5FzYHWZd92Tx3rqKpGHaDc0pdjMmZclyKgK4fe8sUL";
+
+        final GraphGridFileServiceClient client = new GraphGridFileServiceClient( "https://dev-api.graphgrid.com/1.0/file/" );
+
+        final FindFileRequest request = new FindFileRequest();
+        request.setGrn( fileGrn );
+        final HashMap<String,String> map = new HashMap<>();
+        map.put( "Authorization", "Bearer ddf08ff3-ee0c-4b02-86e7-1fa551a2faa7" );
+        request.withHeaders( map );
+
+        final FindFileResponse file = client.findFileByGrn( request );
+        assertNotNull( file );
+        assertNotNull( file.getFileNode() );
+    }
 }
